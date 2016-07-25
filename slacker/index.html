@@ -6,13 +6,45 @@
 <body bgcolor="26A3DB">
   <div id="biggest-slacker"></div>
   <div id="most-active-channel"></div>
+  <div id="most-active-channels-chart">
+    <canvas id="myChart" width="200" height="200"></canvas>
+  </div>
   <div id="longest-message"></div>
   <div id="most-common-word"></div>
-  
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.6/Chart.bundle.min.js"></script>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     var socket = io();
     var statPosition = 3;
+
+    Chart.defaults.global.elements.rectangle.backgroundColor = '#F9A326';
+    Chart.defaults.global.title.display = false;
+    Chart.defaults.global.tooltips.enabled = false;
+    Chart.defaults.global.responsive = true;
+    Chart.defaults.global.maintainAspectRatio = false;
+    Chart.defaults.bar.display = false;
+
+    var ctx = document.getElementById("myChart");
+
+    var chartOptions = {
+      scales: {
+          yAxes: [{
+              ticks: {
+                  beginAtZero:true
+              },
+              display: false
+          }]
+      }
+    };
+
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {},
+        options: chartOptions
+    });
 
     var things = [
       {
@@ -38,22 +70,29 @@
         data: function(data) {
           return mostCommonWord(data.mostCommonWord, this.element);
         }
+      },
+      {
+        element: document.getElementById('most-active-channels-chart'),
+        data: function(data) {
+          return mostActiveChannels(data.mostActiveChannel, this.element);
+        }
       }
     ];
 
     statRotationLoop();
 
-    socket.on('message', function(msg){
-
+    var handleData = function(data) {
       things.forEach(each => {
-        each.data(msg);
+        each.data(data);
       });
-    });
+    }
+
+    socket.on('message', handleData);
 
     function statRotationLoop() {
       statPosition = Math.floor((Math.random() * things.length));
       console.log('stat rotation loop : ' + statPosition);
-      show(statPosition);
+      show(4);
       setTimeout(statRotationLoop, 1000 * 30);
     }
 
@@ -78,10 +117,42 @@
     }
 
     function mostActiveChannel(data, element) {
+      console.log(data);
       element.innerHTML =
       '<p>Most active channel is...</p>' +
       '<br>' +
-      '<p>#' + data.name + '</p>';
+      '<p>#' + data[0].channel.name + '</p>';
+    }
+
+    function mostActiveChannels(data, element) {
+      shuffle(data);
+      var labels = data.map(each => {
+        return each.channel.name;
+      });
+
+      var dataset = data.map(each => {
+        return each.payload.messages.length;
+      });
+
+      var chartData = {
+        labels: labels,
+        datasets: [{
+            label: 'Channel activity',
+            data: dataset
+        }]
+      };
+
+      myChart.data = chartData
+    }
+
+    function shuffle(a) {
+        var j, x, i;
+        for (i = a.length; i; i--) {
+            j = Math.floor(Math.random() * i);
+            x = a[i - 1];
+            a[i - 1] = a[j];
+            a[j] = x;
+        }
     }
 
     function longestMessage(data, element) {

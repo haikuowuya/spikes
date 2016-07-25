@@ -74,9 +74,13 @@ function Slacker(token) {
   }
 
   function mostActiveChannel(messages) {
-    var mostActiveChannel = slackerRules.mostActiveChannel(messages);
-    var channel = rtm.dataStore.getChannelById(mostActiveChannel.key);
-    return channel;
+    var mostActiveChannels = slackerRules.mostActiveChannel(messages);
+    return mostActiveChannels.map(each => {
+      return {
+        payload: each,
+        channel: rtm.dataStore.getChannelById(each.key)
+      };
+    })
   }
 
   function longestMessage(messages) {

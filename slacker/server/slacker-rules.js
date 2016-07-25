@@ -31,7 +31,7 @@ function mostActiveChannel(messages) {
   var timeSortedMessages = messages.sort(sortMessagesByTimestamp);
   var allMessages = flattenToChannel(timeSortedMessages);
   allMessages.sort(sortByMessagesLength);
-  return allMessages[0];
+  return allMessages.splice(0, 5);
 
   var channel = rtm.dataStore.getChannelById(allMessages[0].key);
   if (previousActiveChannel !== channel) {
