@@ -1,0 +1,16 @@
+repositories {
+    jcenter()
+}
+
+apply plugin: 'groovy'
+
+dependencies {
+    compile gradleApi()
+    compile 'com.novoda:gradle-android-command-plugin:1.6.2'
+}
+
+sourceSets {
+    main {
+        groovy { srcDir '../../plugin/src/main/groovy' }
+    }
+}
